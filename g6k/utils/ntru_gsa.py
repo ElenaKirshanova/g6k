@@ -62,7 +62,7 @@ def getGSA(q, nqs, nbasis, beta):
 	current_vol = sum(GSA)
 	assert abs(current_vol/lattice_vol - 1) < 1e-6
 
-	return GSA, i_index, i_index+j_index
+	return GSA, i_index, i_index+j_index, current_vol
 
 
 def sievig0292(dim):
@@ -83,12 +83,13 @@ def find_beta(n, q, nsamples, svp_alg = sievig0349):
 			break
 		#for m in range(max(b-n, int(nsamples/2.)), nsamples, 5):
 		m = nsamples
-		GSA, i, j  = getGSA(q, m, n, b)
+		GSA, i, j, vol  = getGSA(q, m, n, b)
 		if exp(GSA[m+n-b]) > sqrt(2.0/3.0 * b)+1 and svp_alg(b) < rt_min:
 			rt_min = svp_alg(b)
 			nsamples_opt = m
 			beta_opt = b
 			GSA_opt = GSA
+			vol_opt = vol
 	"""
 	for nsample in range( int(nsamples/3.), nsamples, 5):
 		dim = n+nsample
@@ -104,4 +105,4 @@ def find_beta(n, q, nsamples, svp_alg = sievig0349):
 				#print('find_beta', beta_opt, nsamples_opt, rt_min)
 				break
 	"""
-	return beta_opt, nsamples_opt, rt_min, GSA_opt
+	return beta_opt, nsamples_opt, rt_min, GSA_opt, vol

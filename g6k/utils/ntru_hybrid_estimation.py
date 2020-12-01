@@ -65,11 +65,11 @@ def plain_hybrid_compleixty(paramset, verbose = False):
 
 	best_g = 0
 	best_nsamples = 0
-	best_beta, best_nsamples, best_prep, best_GSA = find_beta(n, q, n)
+	best_beta, best_nsamples, best_prep, best_GSA, best_vol = find_beta(n, q, n)
 	best_rt = 2**best_prep
 
 	for g in range(3, int(n/2)):
-		beta, nsamples, prep_rt, GSA = find_beta(n-g, q, n) #g determines beta
+		beta, nsamples, prep_rt, GSA, vol = find_beta(n-g, q, n) #g determines beta
 		w_scaled = (float(w*g) / n) # assume the weight is uniformly distributed over s
 		S = multinom(g, [ceil(w_scaled/3.), ceil(w_scaled/3.), g - 2.*ceil(w_scaled/3.)]) # number of CVP batches
 		#print('g:', g, beta, w_scaled, S)
@@ -84,9 +84,10 @@ def plain_hybrid_compleixty(paramset, verbose = False):
 			best_beta = beta
 			best_nsamples = nsamples
 			best_GSA = GSA
+			best_vol = vol
 			if verbose:
 				print('rt_log:', best_rt_log, 'beta:', beta,'g:', g)
-	return best_beta, best_g, log(best_rt,2), best_nsamples, best_GSA
+	return best_beta, best_g, log(best_rt,2), best_nsamples, best_GSA, best_vol
 
 
 
@@ -97,23 +98,22 @@ def ntru_plain_hybrid_basis(A, g, q, nsamples):
 	n = A.ncols
 	ell = n - g
 	print(n, ell, nsamples)
-	B = IntegerMatrix((nsamples+ell), (ell))
+	B = IntegerMatrix((nsamples+ell), (ell+nsamples))
 	Bg = IntegerMatrix(g, n)
 
 
 	for i in range(ell):
+		B[i,i] = 1
 		for j in range(nsamples):
-			B[i,j] = A[i, j]
+			B[i,j+n] = A[i, j]
 	for i in range(nsamples):
-		B[i+ell, i] = q
+		B[i+ell, i+ell] = q
 
 	for i in range(g):
 		for j in range(n):
 			Bg[i,j] = A[i+ell, j]
 
 	B = LLL.reduction(B)
-	assert(B[:ell] == IntegerMatrix(ell, nsamples))
-	B = B[ell:]
 	return B, Bg
 
 def sim_params(n, alpha):

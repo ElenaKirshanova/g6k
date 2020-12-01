@@ -170,17 +170,18 @@ def ntru_kernel(arg0, params=None, seed=None):
     # compute the attack parameters
     paramset_NTRU1 = {'n': n, 'q': q, 'w': 2*(n/3.)}
     print(paramset_NTRU1)
-    beta, g, rt, nsamples, GSA = plain_hybrid_compleixty(paramset_NTRU1, verbose = True)
+    beta, g, rt, nsamples, GSA, vol = plain_hybrid_compleixty(paramset_NTRU1, verbose = True)
     #print('beta, g, rt, nsamples:', beta, g, rt, nsamples)
 
     # if g is too small to help, recompute BKZ params
     if g<=4:
         g = 0
-        beta, nsamples,rt, GSA = find_beta(n, q, n)
+        beta, nsamples,rt, GSA, vol = find_beta(n, q, n)
 
     print('beta, g, rt, nsamples:', beta, g, rt, nsamples)
-    print('GSA predicted:')
-    print([exp(GSA[i]) for i in range(len(GSA))])
+    print('vol computed in prediction:', vol)
+    #print('GSA predicted:')
+    #print([exp(GSA[i]) for i in range(len(GSA))])
 
     B, Bg = ntru_plain_hybrid_basis(H, g, q, n)
 
@@ -201,8 +202,10 @@ def ntru_kernel(arg0, params=None, seed=None):
     slope = basis_quality(g6k.M)["/"]
     print("Intial Slope = %.5f\n" % slope)
 
-    print('GSA input:')
-    print([g6k.M.get_r(i, i) for i in range(d)])
+    print('true vol:')
+    print(prod([log(g6k.M.get_r(i, i)) for i in range(d)]))
+    #print('GSA input:')
+    #print([g6k.M.get_r(i, i) for i in range(d)])
 
     print('d:', d)
     target_norm = ceil( (2./3)*d + 1) + 1

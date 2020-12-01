@@ -1,7 +1,7 @@
-
+#!/usr/bin/env python3
 
 from sage.all import *
-from fpylll import IntegerMatrix
+#from fpylll import IntegerMatrix
 
 def gen_small(s, n):
 	"""
@@ -85,7 +85,6 @@ def gen_ntru_challenge(n):
 
 	#print('g*h', Fx_qou(g_poly)*h)
 
-
 	filename = 'ntru_n_'+str(n)+'.txt'
 	Hmat = print_ntru(q, h, variable_x, filename)
 	Hmat = matrix(ZZ,[hrow for hrow in Hmat])
@@ -99,31 +98,30 @@ def gen_ntru_challenge(n):
 		assert qvec_red[i] % q == 0
 		qvec_red[i]  = -qvec[i] / q
 	#print("qvec_red:", qvec_red)
-	B = matrix(ZZ, 2*n, n)
+	B = matrix(ZZ, 2*n, 2*n)
 
 	for i in range(n):
+		B[i,i] = 1
 		for j in range(n):
-			B[i,j] = Hmat[i, j]
-		B[i+n, i] = q
+			B[i,j+n] = Hmat[i, j]
+		B[i+n, i+n] = q
 	#print("B:")
 	#print(B)
 	f_check = vector(list(g_poly) + list(qvec_red))*B
-	f_check = vector(ZZ, [f_check[i] for i in range(n)])
-	assert(f_check==vector(f_poly))
-	print(norm(f_check))
+	#f_check = vector(ZZ, [f_check[i] for i in range(n)])
+	#print(f_check, vector(f_poly))
+	assert(f_check[:n]==vector(g_poly))
+	assert(f_check[n:]==vector(f_poly))
+	#print(norm(f_check))
 
 
-#	"""
+	"""
 	B = B.LLL()
-	assert(B[:n] == matrix(ZZ,n, n))
 	#print("B")
 	#print(B)
-	b0 = B[n]
+	b0 = B[0]
 	print('b0:', b0, norm(b0))
 
-	B = B[n:]
-	print(B)
-	Bred =  B.BKZ(block_size=5, proof=False)
 	print(Bred[0], norm(Bred[0]))
 
 	for i in range(len(rotations)):
@@ -139,29 +137,26 @@ def gen_ntru_challenge(n):
 
 	return h, q
 
-def gen_lwe_challenge(n,q):
-
-	Amat = IntegerMatrix.random(n, "uniform", bits=floor(log(q,2)))
-	A = matrix(ZZ,[Amat[i] for i in range(Amat.nrows)])
-	w = int(n/3.)
-	s = vector(ZZ,gen_small(w,n))
-
-	e = vector(ZZ,gen_small(w,n))
-	b = s*A + e
-	b = vector([b[i]%q for i in range(n)])
-
-	filename = 'lwe_n'+str(n)+'.txt'
-	f = open(filename, 'w')
-	f.write(str(q)+'\n')
-	for i in range(A.nrows()):
-		f.write( str(A[i]).replace(',','') +'\n')
-	f.write(str(b).replace(',',''))
-	f.close()
+# def gen_lwe_challenge(n,q):
+#
+# 	Amat = IntegerMatrix.random(n, "uniform", bits=floor(log(q,2)))
+# 	A = matrix(ZZ,[Amat[i] for i in range(Amat.nrows)])
+# 	w = int(n/3.)
+# 	s = vector(ZZ,gen_small(w,n))
+#
+# 	e = vector(ZZ,gen_small(w,n))
+# 	b = s*A + e
+# 	b = vector([b[i]%q for i in range(n)])
+#
+# 	filename = 'lwe_n'+str(n)+'.txt'
+# 	f = open(filename, 'w')
+# 	f.write(str(q)+'\n')
+# 	for i in range(A.nrows()):
+# 		f.write( str(A[i]).replace(',','') +'\n')
+# 	f.write(str(b).replace(',',''))
+# 	f.close()
 
 
 if __name__ == '__main__':
-	n = 128
+	n = 64
 	gen_ntru_challenge(n)
-	#n = 64
-	#q = 4201
-	#gen_lwe_challenge(n,q)
